@@ -53,6 +53,33 @@ void LinkStatus_Ctor(LinkStatus* unit) {
     SETCALC(LinkStatus_next);
 }
 
+struct LinkGetTempo : public Unit {
+
+};
+
+extern "C" {
+  void LinkGetTempo_Ctor(LinkGetTempo* unit);
+  void LinkGetTempo_next(LinkGetTempo* unit, int inNumSamples);
+}
+
+void LinkGetTempo_next(LinkGetTempo* unit, int inNumSamples) {
+  float* output = OUT(0);
+  // *output = 0.0;
+  if (gLink) {
+    auto timeline = gLink->captureAudioTimeline();
+    // std::cout << "swong " << timeline.tempo() << std::endl;
+    *output = static_cast<float>(timeline.tempo());
+  }
+}
+
+void LinkGetTempo_Ctor(LinkGetTempo* unit) {
+    if (!gLink) {
+        gTempo = *IN(0);
+        gThread = std::thread(make_link_callback, nullptr);
+    }
+    SETCALC(LinkGetTempo_next);
+}
+
 struct LinkDisabler : public Unit {
 
 };
@@ -131,10 +158,14 @@ void LinkTempo_Ctor(LinkTempo* unit) {
 }
 
 void LinkTempo_next(LinkTempo* unit, int inNumSamples) {
+  // float* output = OUT(0);
+  // *output = 0.0;
+
   if (gLink && unit->mRunning) {
     auto timeline = gLink->captureAudioTimeline();
     timeline.setTempo(unit->mCurTempo - (*IN(1) * unit->mTempoCalc), gLink->clock().micros());
     gLink->commitAudioTimeline(timeline);
+    // *output = static_cast<float>(timeline.tempo());
   }
 }
 
@@ -143,5 +174,6 @@ PluginLoad(AudioUnit) {
   DefineSimpleUnit(LinkStatus);
   DefineSimpleUnit(Link);
   DefineSimpleUnit(LinkTempo);
+  DefineSimpleUnit(LinkGetTempo);
 }
 

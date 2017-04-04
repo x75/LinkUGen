@@ -11,7 +11,11 @@ LinkStatus : UGen {
 	}
 }
 
-
+LinkGetTempo : UGen {
+	*kr {
+		^this.multiNew('control');
+	}
+}
 
 Link : UGen {
 	*enable { arg tempo = 60.0;
@@ -20,15 +24,15 @@ Link : UGen {
 			FreeSelf.kr(1);
 		}
 	}
-	
+
 	*kr {
 		^this.multiNew('control');
 	}
-	
+
 	*quantum {
 		^96;
 	}
-	
+
 	*setTempo { arg tempo, lagTime = 0.0;
 		play{
 			LinkTempo.kr(tempo, Line.kr(0, 1, lagTime, doneAction: 2));
@@ -58,7 +62,7 @@ LinkLane : UGen {
 	*kr { arg div = 1, max = 4, lane = [];
 		^Mix(lane.collect({|item|
 			var isEq = (LinkCount.kr(div) % max eq: item);
-			Changed.kr(isEq) * isEq;			
+			Changed.kr(isEq) * isEq;
 		}));
 	}
 }
